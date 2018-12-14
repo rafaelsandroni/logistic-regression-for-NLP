@@ -1,28 +1,36 @@
-
 # coding: utf-8
-from  model import lr as model
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
+from  model import lr as model
+from tfidf import transform
+from matplotlib.colors import ListedColormap
+
+# load dataset
 PATH_TRAINING = ''
 PATH_TEST = ''
-
 df_training = pd.read_csv(PATH_TRAINING)
 df_test = pd.read_csv(PATH_TEST)
 
+X = df_training
+tfidf_vect = transform(X)
 
-
-# In[210]:
-
-
-import pandas as pd
 X = pd.DataFrame(tfidf_vect)
-X = X.fillna(1)
+X = X.fillna(0)
+
+# Labels
+def labels(x):
+    if x == 'female':
+        return 0
+    else: 
+        return 1
+y = df_training['gender'].apply( labels )
+y = y.values
 
 
-# In[225]:
+print("Shape", X.shape, y.shape)
 
-
-from matplotlib.colors import ListedColormap
 
 def plot_decision_regions(X, y, classifier, resolution=0.02):
 
@@ -32,8 +40,8 @@ def plot_decision_regions(X, y, classifier, resolution=0.02):
     cmap = ListedColormap(colors[:len(np.unique(y))])
 
     # plot the decision surface
-    x1_min, x1_max = X[:].min() - 1, X[:].max() + 1
-    x2_min, x2_max = X[:].min() - 1, X[:].max() + 1
+    x1_min, x1_max = X[:,0].min() - 1, X[:,0].max() + 1
+    x2_min, x2_max = X[:,1].min() - 1, X[:,1].max() + 1
     xx1, xx2 = np.meshgrid(np.arange(x1_min, x1_max, resolution),
                          np.arange(x2_min, x2_max, resolution))
     Z = classifier.predict(np.array([xx1.ravel(), xx2.ravel()]).T)
@@ -49,29 +57,7 @@ def plot_decision_regions(X, y, classifier, resolution=0.02):
                     marker=markers[idx], label=cl)
 
 
-# In[226]:
-
-
-def labels(x):
-    if x == 'female':
-        return 0
-    else: 
-        return 1
-y = df_training['gender'].apply( labels )
-y = y.values
-
-
-# In[228]:
-
-
-X.shape, y.shape
-
-
-# In[229]:
-
-
 get_ipython().magic('matplotlib inline')
-import matplotlib.pyplot as plt
 
 lr = model(n_iter=500, eta=0.2).fit(X, y)
 plt.plot(range(1, len(lr.cost_) + 1), np.log10(lr.cost_))
@@ -82,14 +68,9 @@ plt.title('Logistic Regression - Learning rate 0.01')
 plt.tight_layout()
 plt.show()
 
-
-# In[230]:
-
-
 plot_decision_regions(X, y, classifier=lr)
 plt.title('Logistic Regression - Gradient Descent')
 plt.xlabel('sepal length [standardized]')
 plt.ylabel('petal length [standardized]')
 plt.legend(loc='upper left')
 plt.tight_layout()
-
